@@ -1,0 +1,1283 @@
+version: 2.1
+
+jobs:
+  checker_py310-vet:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: drum kettle
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; printf "x" | md5sum | md5sum | awk '{print $1}'; true ; } > /tmp/scratch/69.data
+            echo "gate py310-vet: $(wc -c </tmp/scratch/69.data) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - 69.data
+  py310-vet:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/69.data
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  tmp_v3-ga1:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: coverage pass
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; head -c 26214400 /dev/urandom | sha256sum; true ; } > /tmp/scratch/primary_step_output.out
+            echo "gate v3-ga1: $(wc -c </tmp/scratch/primary_step_output.out) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - primary_step_output.out
+  v3-ga1:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/primary_step_output.out
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  phase1_py310-build:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: pleasantly full
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; seq 1 1000 | awk 'NR%3==0' | wc -l; true ; } > /tmp/scratch/phase-ready.out
+            echo "gate py310-build: $(wc -c </tmp/scratch/phase-ready.out) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - phase-ready.out
+  py310-build:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/phase-ready.out
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  staging_PackageService:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: knock down
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; type echo; true ; } > /tmp/scratch/step-21.txt
+            echo "gate PackageService: $(wc -c </tmp/scratch/step-21.txt) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - step-21.txt
+  PackageService:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/step-21.txt
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  step2_ValidateService:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: sumo pull
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; yes "abc" | head -500 | sort | uniq | wc -l; true ; } > /tmp/scratch/checkpoint-E.pt
+            echo "gate ValidateService: $(wc -c </tmp/scratch/checkpoint-E.pt) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - checkpoint-E.pt
+  ValidateService:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/checkpoint-E.pt
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  runner_INFRA-306:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: heave line
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; echo "   leading" | sed 's/^ *//'; true ; } > /tmp/scratch/final.log
+            echo "gate INFRA-306: $(wc -c </tmp/scratch/final.log) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - final.log
+  INFRA-306:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/final.log
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  preflight_atlas-v2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: puff
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; cat /etc/group | md5sum | cut -c1-20; true ; } > /tmp/scratch/handover.sig
+            echo "gate atlas-v2: $(wc -c </tmp/scratch/handover.sig) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - handover.sig
+  atlas-v2:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/handover.sig
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  Alpha_INFRA-415:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: wet sand
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; awk -F: '$3>1000 && $3<2000' /etc/passwd | wc -l; true ; } > /tmp/scratch/full_task_output.log
+            echo "gate INFRA-415: $(wc -c </tmp/scratch/full_task_output.log) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - full_task_output.log
+  INFRA-415:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/full_task_output.log
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  do_nico-ci:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: plank 90
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; echo "pw" | sha256sum | sha256sum | awk '{print $1}' | head -c 24; true ; } > /tmp/scratch/phase-ready.sig
+            echo "gate nico-ci: $(wc -c </tmp/scratch/phase-ready.sig) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - phase-ready.sig
+  nico-ci:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/phase-ready.sig
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  preflight_intergration:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: thud
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; mkdir -p /tmp/_s && echo "data" > /tmp/_s/a && wc -c /tmp/_s/a && rm -rf /tmp/_s; true ; } > /tmp/scratch/.ok
+            echo "gate intergration: $(wc -c </tmp/scratch/.ok) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - .ok
+  intergration:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/.ok
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  do_chen-verify:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: stick weld
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; ls -lha ~ 2>/dev/null | head -5; true ; } > /tmp/scratch/stage-complete.log
+            echo "gate chen-verify: $(wc -c </tmp/scratch/stage-complete.log) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - stage-complete.log
+  chen-verify:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/stage-complete.log
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  sys_ruby3-cov:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: transposition
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; ls /proc 2>/dev/null | grep -c '^[0-9]' 2>/dev/null; true ; } > /tmp/scratch/stats.csv
+            echo "gate ruby3-cov: $(wc -c </tmp/scratch/stats.csv) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - stats.csv
+  ruby3-cov:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/stats.csv
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  Delta_jun26-release:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: arpeggio sweep
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; echo -e "A\tB\tC\n1\t2\t3" | awk -F'\t' '{print $2}'; true ; } > /tmp/scratch/stage.raw
+            echo "gate jun26-release: $(wc -c </tmp/scratch/stage.raw) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - stage.raw
+  jun26-release:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/stage.raw
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  redo_rc-v5:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: flag check
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; echo abcdefg | cut -c3-5; true ; } > /tmp/scratch/pt-E.pt
+            echo "gate rc-v5: $(wc -c </tmp/scratch/pt-E.pt) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - pt-E.pt
+  rc-v5:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/pt-E.pt
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  auditor_build-quick-integration-tests:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: blue light
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; echo "another" | sha512sum 2>/dev/null | head -c 24 || echo "another" | sha256sum | head -c 24; true ; } > /tmp/scratch/timings.json
+            echo "gate build-quick-integration-tests: $(wc -c </tmp/scratch/timings.json) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - timings.json
+  build-quick-integration-tests:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/timings.json
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  canary1_vela-alpha:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: room for pie
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; cat /proc/loadavg 2>/dev/null | head -c 20; true ; } > /tmp/scratch/98.out
+            echo "gate vela-alpha: $(wc -c </tmp/scratch/98.out) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - 98.out
+  vela-alpha:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/98.out
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  round2_canary:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: cnc plasma
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; head -c 50 /dev/zero | base64; true ; } > /tmp/scratch/artifact.tar
+            echo "gate canary: $(wc -c </tmp/scratch/artifact.tar) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - artifact.tar
+  canary:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/artifact.tar
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  gamma_sm:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: tire pop
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; seq 1 2000 | awk '{s += (-1)^$1 * $1}END{print s}'; true ; } > /tmp/scratch/599.txt
+            echo "gate sm: $(wc -c </tmp/scratch/599.txt) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - 599.txt
+  sm:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/599.txt
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  spinner_apr4-smoke:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: decrescendo
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; file /etc/hostname 2>/dev/null | head -1 || echo file-missing; true ; } > /tmp/scratch/step-14.txt
+            echo "gate apr4-smoke: $(wc -c </tmp/scratch/step-14.txt) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - step-14.txt
+  apr4-smoke:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/step-14.txt
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  step1_produce-end-to-end-integration-tests:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: birch log
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; seq 1 100 | awk '{if($1<50) a+=$1; else b+=$1}END{print a, b}'; true ; } > /tmp/scratch/PASS
+            echo "gate produce-end-to-end-integration-tests: $(wc -c </tmp/scratch/PASS) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - PASS
+  produce-end-to-end-integration-tests:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/PASS
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  sys_STAGE_STG:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: v1 call
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{n=1024; while(n>1){n/=2;c++}; print c}'; true ; } > /tmp/scratch/pt-D.pickle
+            echo "gate STAGE_STG: $(wc -c </tmp/scratch/pt-D.pickle) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - pt-D.pickle
+  STAGE_STG:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/pt-D.pickle
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  p2_b-01:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: reef knot
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; tasks=$(ps -eo pid 2>/dev/null | wc -l) && echo $((tasks)); true ; } > /tmp/scratch/step-2.log
+            echo "gate b-01: $(wc -c </tmp/scratch/step-2.log) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - step-2.log
+  b-01:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/step-2.log
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  audit_cd-new:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: spanner thrown
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; wc -l /etc/hostname; true ; } > /tmp/scratch/2023-07-10.data
+            echo "gate cd-new: $(wc -c </tmp/scratch/2023-07-10.data) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - 2023-07-10.data
+  cd-new:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/2023-07-10.data
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  prebuild_polaris-alpha:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: broad reach
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; head -c 1024 /dev/urandom | tar -c - 2>/dev/null | wc -c; true ; } > /tmp/scratch/timings.tsv
+            echo "gate polaris-alpha: $(wc -c </tmp/scratch/timings.tsv) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - timings.tsv
+  polaris-alpha:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/timings.tsv
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  install_biuld-73:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: ambush
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; grep -c "^processor" /proc/cpuinfo; true ; } > /tmp/scratch/2024-10-06.data
+            echo "gate biuld-73: $(wc -c </tmp/scratch/2024-10-06.data) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - 2024-10-06.data
+  biuld-73:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/2024-10-06.data
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  loader_ivan-smoke:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: staccato
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{t="x"; for(i=0;i<8;i++)t=t t; print length(t)}'; true ; } > /tmp/scratch/step-22.txt
+            echo "gate ivan-smoke: $(wc -c </tmp/scratch/step-22.txt) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - step-22.txt
+  ivan-smoke:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/step-22.txt
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  deps_verify-end-to-end-release-candidate:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: tap dance
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; echo $(($(date +%u) + 7)); true ; } > /tmp/scratch/cache.bin
+            echo "gate verify-end-to-end-release-candidate: $(wc -c </tmp/scratch/cache.bin) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - cache.bin
+  verify-end-to-end-release-candidate:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/cache.bin
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  package_rigel-final:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: sniff
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; ps -eo state 2>/dev/null | sort | uniq -c; true ; } > /tmp/scratch/466.out
+            echo "gate rigel-final: $(wc -c </tmp/scratch/466.out) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - 466.out
+  rigel-final:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/466.out
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  D_polaris-beta:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: fingers crossed
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; echo $(($(date +%u) + 7)); true ; } > /tmp/scratch/80.out
+            echo "gate polaris-beta: $(wc -c </tmp/scratch/80.out) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - 80.out
+  polaris-beta:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/80.out
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+  prebuild_build:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: snack time
+          command: |
+            mkdir -p /tmp/scratch
+            { set +o pipefail 2>/dev/null; printf 'Hello World\nHELLO AGAIN\nhello\n' | grep -i hELLO; true ; } > /tmp/scratch/final.md
+            echo "gate build: $(wc -c </tmp/scratch/final.md) bytes total"
+      - persist_to_workspace:
+          root: /tmp/scratch
+          paths:
+            - final.md
+  build:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/scratch
+      - run:
+          name: Read handoff file
+          command: |
+            cat /tmp/scratch/final.md
+      - run:
+          name: Fetch project tree
+          command: git clone --depth 5 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack cached data
+          command: tar -xj -f dist.tar.bz2
+      - run:
+          no_output_timeout: 73m
+          command: ./play && true
+
+workflows:
+  build:
+    jobs:
+      - checker_py310-vet
+      - py310-vet:
+          requires:
+            - checker_py310-vet
+      - D_polaris-beta:
+          requires:
+            - checker_py310-vet
+      - polaris-beta:
+          requires:
+            - D_polaris-beta
+      - do_chen-verify:
+          requires:
+            - D_polaris-beta
+      - chen-verify:
+          requires:
+            - do_chen-verify
+      - gamma_sm:
+          requires:
+            - do_chen-verify
+      - sm:
+          requires:
+            - gamma_sm
+      - loader_ivan-smoke:
+          requires:
+            - gamma_sm
+      - ivan-smoke:
+          requires:
+            - loader_ivan-smoke
+      - deps_verify-end-to-end-release-candidate:
+          requires:
+            - loader_ivan-smoke
+      - verify-end-to-end-release-candidate:
+          requires:
+            - deps_verify-end-to-end-release-candidate
+      - Delta_jun26-release:
+          requires:
+            - deps_verify-end-to-end-release-candidate
+      - jun26-release:
+          requires:
+            - Delta_jun26-release
+      - auditor_build-quick-integration-tests:
+          requires:
+            - Delta_jun26-release
+      - build-quick-integration-tests:
+          requires:
+            - auditor_build-quick-integration-tests
+      - Alpha_INFRA-415:
+          requires:
+            - auditor_build-quick-integration-tests
+      - INFRA-415:
+          requires:
+            - Alpha_INFRA-415
+      - step1_produce-end-to-end-integration-tests:
+          requires:
+            - Alpha_INFRA-415
+      - produce-end-to-end-integration-tests:
+          requires:
+            - step1_produce-end-to-end-integration-tests
+      - round2_canary:
+          requires:
+            - step1_produce-end-to-end-integration-tests
+      - canary:
+          requires:
+            - round2_canary
+      - sys_STAGE_STG:
+          requires:
+            - round2_canary
+      - STAGE_STG:
+          requires:
+            - sys_STAGE_STG
+      - p2_b-01:
+          requires:
+            - sys_STAGE_STG
+      - b-01:
+          requires:
+            - p2_b-01
+      - sys_ruby3-cov:
+          requires:
+            - p2_b-01
+      - ruby3-cov:
+          requires:
+            - sys_ruby3-cov
+      - phase1_py310-build:
+          requires:
+            - sys_ruby3-cov
+      - py310-build:
+          requires:
+            - phase1_py310-build
+      - prebuild_build:
+          requires:
+            - phase1_py310-build
+      - build:
+          requires:
+            - prebuild_build
+      - step2_ValidateService:
+          requires:
+            - prebuild_build
+      - ValidateService:
+          requires:
+            - step2_ValidateService
+      - spinner_apr4-smoke:
+          requires:
+            - step2_ValidateService
+      - apr4-smoke:
+          requires:
+            - spinner_apr4-smoke
+      - prebuild_polaris-alpha:
+          requires:
+            - spinner_apr4-smoke
+      - polaris-alpha:
+          requires:
+            - prebuild_polaris-alpha
+      - runner_INFRA-306:
+          requires:
+            - prebuild_polaris-alpha
+      - INFRA-306:
+          requires:
+            - runner_INFRA-306
+      - install_biuld-73:
+          requires:
+            - runner_INFRA-306
+      - biuld-73:
+          requires:
+            - install_biuld-73
+      - package_rigel-final:
+          requires:
+            - install_biuld-73
+      - rigel-final:
+          requires:
+            - package_rigel-final
+      - canary1_vela-alpha
+      - vela-alpha:
+          requires:
+            - canary1_vela-alpha
+      - audit_cd-new:
+          requires:
+            - canary1_vela-alpha
+      - cd-new:
+          requires:
+            - audit_cd-new
+      - redo_rc-v5:
+          requires:
+            - audit_cd-new
+      - rc-v5:
+          requires:
+            - redo_rc-v5
+      - preflight_intergration:
+          requires:
+            - redo_rc-v5
+      - intergration:
+          requires:
+            - preflight_intergration
+      - staging_PackageService:
+          requires:
+            - preflight_intergration
+      - PackageService:
+          requires:
+            - staging_PackageService
+      - tmp_v3-ga1:
+          requires:
+            - staging_PackageService
+      - v3-ga1:
+          requires:
+            - tmp_v3-ga1
+      - do_nico-ci:
+          requires:
+            - tmp_v3-ga1
+      - nico-ci:
+          requires:
+            - do_nico-ci
+      - preflight_atlas-v2:
+          requires:
+            - do_nico-ci
+      - atlas-v2:
+          requires:
+            - preflight_atlas-v2
